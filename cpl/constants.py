@@ -1,3 +1,5 @@
+"""Constant values"""
+
 import random
 import urllib.parse
 

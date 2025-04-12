@@ -1,3 +1,5 @@
+"""CPL API CLient for accessing CPL data"""
+
 from typing import cast
 
 import httpx
@@ -56,6 +58,7 @@ class CPLClient:
 
             if not data or "players" not in data:
                 self.logger.warning("Failed to initialize player cache: No players data found")
+
                 return
 
             # Build player cache with ID as key
@@ -169,7 +172,9 @@ class CPLClient:
         except RequestError as err:
             if "404" in str(err):
                 self.logger.warning(f"Roster not found (404) for team_id: {team_id}")
+
                 return {"squad": [], "lastUpdated": ""}
+
             raise
 
     def get_team_stats(self, season_id: str = DEFAULT_SEASON_ID) -> TeamStats:
@@ -217,7 +222,9 @@ class CPLClient:
         except RequestError as err:
             if "404" in str(err):
                 self.logger.warning(f"Player stats not found (404) for season: {season_id}")
+
                 return {"ip": "", "feeds": [], "player": []}
+
             raise
 
     def get_player_career(self, player_id: str) -> PlayerCareerStats:
@@ -244,7 +251,9 @@ class CPLClient:
         except RequestError as err:
             if "404" in str(err):
                 self.logger.warning(f"Player career not found (404) for player_id: {player_id}")
+
                 return {"person": [], "lastUpdated": ""}
+
             raise
 
     def get_leaderboards(self, player_stats: PlayerStats, team_stats: TeamStats):

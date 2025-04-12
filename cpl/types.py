@@ -1,3 +1,5 @@
+"""Type definitions for the CPL API SDK"""
+
 from typing import Literal, NotRequired, Required, TypedDict
 
 
