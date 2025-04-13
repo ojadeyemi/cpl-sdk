@@ -146,10 +146,10 @@ class Stage(TypedDict):
     id: str
     formatId: str
     name: str
-    vertical: int
+    vertical: NotRequired[int]
     startDate: str
     endDate: str
-    division: list[Division]
+    division: NotRequired[list[Division]]
 
 
 class Standings(TypedDict):
@@ -219,7 +219,7 @@ class MatchOfficial(TypedDict):
 
 
 class MatchDetailsExtra(TypedDict):
-    attendance: str
+    attendance: NotRequired[str]
     matchOfficial: list[MatchOfficial]
 
 
@@ -231,29 +231,26 @@ class EventBase(TypedDict):
     lastUpdated: str
     timestamp: str
     type: str
+
+
+class Goal(EventBase, total=False):
+    scorerId: str
+    scorerName: str
+    homeScore: int
+    awayScore: int
+    assistPlayerId: str
+    assistPlayerName: str
+    optaEventId: str
+
+
+class Card(EventBase, total=False):
+    cardReason: str
     playerId: str
     playerName: str
     optaEventId: str
 
 
-class Goal(EventBase):
-    scorerId: str
-    scorerName: str
-    homeScore: int
-    awayScore: int
-
-
-class Card(EventBase):
-    cardReason: str
-
-
-class Substitute(TypedDict):
-    contestantId: str
-    periodId: int
-    timeMin: int
-    timeMinSec: str
-    lastUpdated: str
-    timestamp: str
+class Substitute(EventBase, total=False):
     playerOnId: str
     playerOnName: str
     playerOffId: str
@@ -329,7 +326,7 @@ class PlayerStats(TypedDict):
     player: list[Player]
 
 
-class CompetitionStat(TypedDict):
+class CompetitionStat(TypedDict, total=False):
     competitionId: str
     competitionName: str
     tournamentCalendarId: str
@@ -357,7 +354,7 @@ class Membership(TypedDict):
     contestantShortName: str
     active: str
     startDate: str
-    endDate: str | None
+    endDate: NotRequired[str | None]
     role: str
     type: str
     transferType: str
@@ -392,7 +389,7 @@ class Person(TypedDict, total=False):
     lastUpdated: str
     ocSecondNationalityId: str | None
     opSecondNationalityId: str | None
-    membership: list["Membership"] | None
+    membership: list[Membership] | None
     position: str
 
     # Fields in TeamRoster
@@ -412,9 +409,10 @@ class Person(TypedDict, total=False):
 class Kit(TypedDict):
     type: str
     shirtColour1: str
+    shirtColour2: NotRequired[str | None]
+    shirtColour3: NotRequired[str | None]
     shortsColour1: str
     socksColour1: str
-    socksColour2: str | None
 
 
 class TeamKits(TypedDict):
