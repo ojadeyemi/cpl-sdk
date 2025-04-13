@@ -85,7 +85,7 @@ class BaseContestant(TypedDict):
     matchesPlayed: int
 
 
-class StandardRanking(BaseContestant):
+class StandardRanking(BaseContestant, total=False):
     points: int
     matchesWon: int
     matchesLost: int
@@ -101,7 +101,7 @@ class TotalRanking(StandardRanking, total=False):
     lastSix: str | None
 
 
-class AttendanceRanking(BaseContestant):
+class AttendanceRanking(BaseContestant, total=False):
     venueId: str
     venueName: str
     minimumAttendance: int
@@ -112,7 +112,7 @@ class AttendanceRanking(BaseContestant):
     percentSold: str
 
 
-class OverUnderRanking(BaseContestant):
+class OverUnderRanking(BaseContestant, total=False):
     goals0: int
     goals1: int
     goals2: int
@@ -262,7 +262,7 @@ class LiveData(TypedDict, total=False):
     matchDetails: MatchDetails
     goal: list[Goal] | None
     card: list[Card] | None
-    substitute:  NotRequired[list[Substitute] | None]
+    substitute: NotRequired[list[Substitute] | None]
     matchDetailsExtra: NotRequired[MatchDetailsExtra | None]
 
 
