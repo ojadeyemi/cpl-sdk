@@ -164,7 +164,7 @@ class Standings(TypedDict):
 
 class MatchInfo(TypedDict):
     id: str
-    coverageLevel: str
+    coverageLevel: NotRequired[str]
     date: str
     time: str
     localDate: str
@@ -230,7 +230,7 @@ class EventBase(TypedDict):
     timeMinSec: str
     lastUpdated: str
     timestamp: str
-    type: str
+    type: NotRequired[str]
 
 
 class Goal(EventBase, total=False):
@@ -262,8 +262,8 @@ class LiveData(TypedDict, total=False):
     matchDetails: MatchDetails
     goal: list[Goal] | None
     card: list[Card] | None
-    substitute: list[Substitute] | None
-    matchDetailsExtra: MatchDetailsExtra | None
+    substitute:  NotRequired[list[Substitute] | None]
+    matchDetailsExtra: NotRequired[MatchDetailsExtra | None]
 
 
 class Match(TypedDict):

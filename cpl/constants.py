@@ -11,7 +11,7 @@ DEFAULT_FMT = "json"
 # Base URLs for the endpoints
 API_BASE = "https://api.performfeeds.com/soccerdata"
 MATCH_BASE_URL = f"{API_BASE}/match/{COMPETITION_ID}"
-STANDINGS_BASE_URL = f"{API_BASE}/seasonstats/{COMPETITION_ID}"
+STANDINGS_BASE_URL = f"{API_BASE}/standings/{COMPETITION_ID}"
 TEAM_INFO_BASE_URL = f"{API_BASE}/team/{COMPETITION_ID}"
 ROSTER_BASE_URL = f"{API_BASE}/squads/{COMPETITION_ID}"
 PLAYER_CAREER_BASE_URL = f"{API_BASE}/playercareer/{COMPETITION_ID}"
