@@ -309,7 +309,7 @@ class Player(TypedDict):
     team: str
     stat: NotRequired[list[Stat]]
     # Images
-    image_url: str
+    photo_url: str
     bio: str
 
 
@@ -404,7 +404,7 @@ class Person(TypedDict, total=False):
     knownName: str | None
 
     # Images
-    image_url: str
+    photo_url: str
     bio: str
     name: str
 
@@ -466,7 +466,7 @@ class LeaderboardEntry(TypedDict):
     team_name: str
     value: int
     ranking: int
-    image_url: NotRequired[str]
+    photo_url: NotRequired[str]
     bio: NotRequired[str]
 
 

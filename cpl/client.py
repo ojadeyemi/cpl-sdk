@@ -66,7 +66,7 @@ class CPLClient:
                 player_id = player.get("id")
                 if player_id:
                     self._player_cache[player_id] = {
-                        "image_url": player.get("thumbnail") or player.get("default") or "",
+                        "photo_url": player.get("thumbnail") or player.get("default") or "",
                         "bio": player.get("bio") or "",
                         "name": player.get("name") or "",
                     }
@@ -79,7 +79,7 @@ class CPLClient:
     def _enrich_player_data(self, player_data: dict, player_id: str):
         """Add image and bio to player data."""
         if player_id in self._player_cache:
-            player_data["image_url"] = self._player_cache[player_id].get("image_url")
+            player_data["photo_url"] = self._player_cache[player_id].get("photo_url")
             player_data["bio"] = self._player_cache[player_id].get("bio")
 
         return player_data
