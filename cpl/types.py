@@ -306,8 +306,8 @@ class Player(TypedDict):
     team: str
     stat: NotRequired[list[Stat]]
     # Images
-    photo_url: str
-    bio: str
+    photo_url: NotRequired[str]
+    bio: NotRequired[str]
 
 
 class TeamStats(TypedDict):
