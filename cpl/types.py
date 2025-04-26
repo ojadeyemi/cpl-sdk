@@ -313,7 +313,7 @@ class Player(TypedDict):
 class StatEntry(TypedDict):
     statsId: str
     statsLabel: str
-    statsLabelAbbreviation: str|None
+    statsLabelAbbreviation: str | None
     statsUnit: str | None
     statsUnitAbbreviation: str | None
     statsValue: float
@@ -387,7 +387,6 @@ class PlayerStatsResponse(TypedDict):
     apiCallRequestTime: NotRequired[str]
     competition: NotRequired[CompetitionInfo]
     pagination: NotRequired[PaginationInfo]
-
 
 
 class CompetitionStat(TypedDict, total=False):
@@ -521,5 +520,6 @@ class PlayerLeaderboardEntry(TypedDict):
     lastName: str
     nationality: str
     nationalityIsoCode: str
+    position: str
     value: int
     ranking: int

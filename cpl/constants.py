@@ -75,3 +75,5 @@ LEADERBOARD_CATEGORIES: dict[str, str] = {
     "RED_CARDS": "red-cards",
     "YELLOW_CARDS": "yellow-cards",
 }
+
+LEADERBOARD_LIMIT = 5
