@@ -5,37 +5,37 @@ from typing import cast
 import httpx
 
 from .constants import (
+    CPL_DEFAULT_SEASON_ID,
+    CPL_PLAYER_STATS_ENDPOINT,
+    CPL_TEAM_STATS_ENDPOINT,
     DEFAULT_FMT,
     DEFAULT_HEADERS,
     DEFAULT_RT,
     DEFAULT_SEASON_ID,
+    LEADERBOARD_CATEGORIES,
     MATCH_BASE_URL,
     MATCH_PARAMS,
     PLAYER_CAREER_BASE_URL,
-    PLAYER_STATS_BASE_URL,
     PLAYERS_ENDPOINT,
     ROSTER_BASE_URL,
     STANDINGS_BASE_URL,
     TEAM_INFO_BASE_URL,
-    TEAM_STATS_BASE_URL,
     build_url,
     get_random_user_agent,
 )
 from .exceptions import APITimeoutError, RequestError
 from .logger import logger
 from .types import (
-    LeaderboardEntry,
     Person,
-    Player,
     PlayerCareerStats,
-    PlayerLeaderboards,
-    PlayerStats,
+    PlayerLeaderboardEntry,
+    PlayerStatsEntry,
+    PlayerStatsResponse,
     Schedule,
     Standings,
-    Stat,
     TeamInfo,
     TeamRoster,
-    TeamStats,
+    TeamStatsResponse,
 )
 
 
@@ -177,55 +177,29 @@ class CPLClient:
 
             raise
 
-    def get_team_stats(self, season_id: str = DEFAULT_SEASON_ID) -> TeamStats:
+    def get_team_stats(self, season_id: str = CPL_DEFAULT_SEASON_ID) -> TeamStatsResponse:
         """
-        Retrieve team statistics data.
+        Retrieve only the list of team stats for a given CPL season,
+        filtering out competition and pagination metadata.
         """
-        url = f"{TEAM_STATS_BASE_URL}?season={season_id}"
+        url = CPL_TEAM_STATS_ENDPOINT.format(season_id=season_id)
+        data = self._get(url)
+        return {"teams": data["teams"]}
 
-        try:
-            data = self._get(url)
-            return cast(TeamStats, data)
-
-        except RequestError as err:
-            if "404" in str(err):
-                self.logger.warning(f"Team stats not found (404) for season_id: {season_id}")
-
-                return {"ip": "", "feeds": [], "contestant": []}
-
-            raise
-
-    def get_player_stats(self, season_id: str = DEFAULT_SEASON_ID) -> PlayerStats:
+    def get_player_stats(
+        self,
+        season_id: str = CPL_DEFAULT_SEASON_ID,
+    ) -> PlayerStatsResponse | None:
         """
-        Retrieve player statistics data with enriched bio and image URL.
+        Retrieve player stats for a given CPL season with a single request,
+        filtering out competition and pagination metadata.
         """
-        url = f"{PLAYER_STATS_BASE_URL}?season={season_id}"
+        url = CPL_PLAYER_STATS_ENDPOINT.format(season_id=season_id)
+        params = {"pageNumElement": 500}
+        full_url = build_url(url, params)
+        resp = self._get(full_url)
 
-        try:
-            data = self._get(url)
-            stats_data = cast(PlayerStats, data)
-
-            # Enrich each player with bio and image URL
-            if "player" in stats_data:
-                for i, player in enumerate(stats_data["player"]):
-                    player_id = player.get("id")
-                    if player_id:
-                        # Must modify player object directly since Player TypedDict doesn't have bio/image fields
-                        player_data = dict(player)
-                        enriched_player = self._enrich_player_data(player_data, player_id)
-
-                        # Update player in the original data structure with type cast
-                        stats_data["player"][i] = cast(Player, enriched_player)
-
-            return stats_data
-
-        except RequestError as err:
-            if "404" in str(err):
-                self.logger.warning(f"Player stats not found (404) for season: {season_id}")
-
-                return {"ip": "", "feeds": [], "player": []}
-
-            raise
+        return {"players": resp["players"]}
 
     def get_player_career(self, player_id: str) -> PlayerCareerStats:
         """
@@ -256,93 +230,45 @@ class CPLClient:
 
             raise
 
-    def get_leaderboards(self, player_stats: PlayerStats, team_stats: TeamStats):
-        """Get both player and team leaderboards."""
+    def _get_players(self) -> list[PlayerStatsEntry]:
+        response = self.get_player_stats() or {}
+        if "players" not in response:
+            self.logger.warning("No players data found")
 
-        leaderboard_data = self._calculate_player_leaderboards(player_stats, team_stats)
+            return []
 
-        return leaderboard_data
+        return response.get("players", [])
 
-    def _extract_stat_value(self, stats: list[Stat], stat_names: list[str]) -> int:
-        """Extract and sum values for specified stat names."""
-        total = 0
-        for stat in stats:
-            if stat["name"] in stat_names:
-                total += int(stat["value"])
+    def get_leaderboards(self) -> dict[str, list[PlayerLeaderboardEntry]]:
+        players = self._get_players()
 
-        return total
+        leaderboards: dict[str, list[PlayerLeaderboardEntry]] = {category: [] for category in LEADERBOARD_CATEGORIES}
 
-    def _calculate_player_leaderboards(self, player_stats: PlayerStats, team_stats: TeamStats) -> PlayerLeaderboards:
-        """Calculate player leaderboards for various stats."""
-        leaderboards: PlayerLeaderboards = {
-            "GOALS": [],
-            "ASSISTS": [],
-            "SAVES": [],
-            "PASSES": [],
-            "INTERCEPTIONS": [],
-            "TACKLES": [],
-            "RED_CARDS": [],
-            "YELLOW_CARDS": [],
-        }
+        for player in players:
+            stats_dict = {stat["statsId"]: stat for stat in player.get("stats", [])}
 
-        # Create team code to name mapping
-        team_map = {contestant["team"]: contestant["name"] for contestant in team_stats.get("contestant", [])}
+            for category, stat_id in LEADERBOARD_CATEGORIES.items():
+                if stat_id in stats_dict:
+                    stat = stats_dict[stat_id]
+                    if stat.get("statsValue") > 2:
+                        print(f"Player ID: {player['mediaFirstName']}, Stat ID: {stat_id}, Value: {stat['statsValue']}")
 
-        for player in player_stats.get("player", []):
-            if "stat" not in player:
-                continue
+                    entry: PlayerLeaderboardEntry = {
+                        "firstName": player.get("mediaFirstName", ""),
+                        "lastName": player.get("mediaLastName", ""),
+                        "nationality": player.get("nationality", ""),
+                        "nationalityIsoCode": player.get("nationalityIsoCode", ""),
+                        "value": int(stat.get("statsValue", 0)),
+                        "ranking": 0,
+                    }
 
-            # Extract stats
-            goals = self._extract_stat_value(player["stat"], ["Goals"])
-            assists = self._extract_stat_value(player["stat"], ["Goal Assists"])
-            saves = self._extract_stat_value(player["stat"], ["Saves Made"])
-            passes = self._extract_stat_value(player["stat"], ["Total Passes"])
-            interceptions = self._extract_stat_value(player["stat"], ["Interceptions"])
-            tackles = self._extract_stat_value(player["stat"], ["Tackles Won"])
-            red_cards = self._extract_stat_value(player["stat"], ["Total Red Cards"])
-            yellow_cards = self._extract_stat_value(player["stat"], ["Yellow Cards"])
-
-            # Base player data
-            player_id = player["id"]
-            current_player_data: LeaderboardEntry = {
-                "player_id": player_id,
-                "full_name": f"{player['firstName']} {player['lastName']}",
-                "position": player["position"],
-                "shirt_number": player["shirtNumber"],
-                "short_first_name": player["shortFirstName"],
-                "short_last_name": player["shortLastName"],
-                "match_name": player["matchName"],
-                "team_id": player["team"],
-                "team_name": team_map.get(player["team"], ""),
-                "value": 0,
-                "ranking": 0,
-            }
-
-            player_data = self._enrich_player_data(dict(current_player_data), player_id)
-
-            # Add to leaderboards if values exist
-            stat_mappings = [
-                (goals, "GOALS"),
-                (assists, "ASSISTS"),
-                (saves, "SAVES"),
-                (passes, "PASSES"),
-                (interceptions, "INTERCEPTIONS"),
-                (tackles, "TACKLES"),
-                (red_cards, "RED_CARDS"),
-                (yellow_cards, "YELLOW_CARDS"),
-            ]
-
-            for value, category in stat_mappings:
-                if value > 0:
-                    entry = player_data.copy()
-                    entry["value"] = value
                     leaderboards[category].append(entry)
 
-        # Sort and rank each leaderboard
-        for category in leaderboards:
-            leaderboards[category] = sorted(leaderboards[category], key=lambda x: x["value"], reverse=True)
+        for category, entries in leaderboards.items():
+            entries.sort(key=lambda x: x["value"], reverse=True)
+            leaderboards[category] = entries[:5]
 
-            for i, entry in enumerate(leaderboards[category]):
-                entry["ranking"] = i + 1
+            for i, entry in enumerate(leaderboards[category], 1):
+                entry["ranking"] = i
 
         return leaderboards

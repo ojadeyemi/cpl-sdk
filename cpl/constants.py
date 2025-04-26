@@ -16,11 +16,18 @@ TEAM_INFO_BASE_URL = f"{API_BASE}/team/{COMPETITION_ID}"
 ROSTER_BASE_URL = f"{API_BASE}/squads/{COMPETITION_ID}"
 PLAYER_CAREER_BASE_URL = f"{API_BASE}/playercareer/{COMPETITION_ID}"
 
-TEAM_STATS_BASE_URL = "https://canpl.ca/feeds/team-stats_feed.php"
-PLAYER_STATS_BASE_URL = "https://canpl.ca/feeds/stats_feed.php"
 
 CPL_BASE_API_URL = "https://login.canpl.ca/api"
 PLAYERS_ENDPOINT = f"{CPL_BASE_API_URL}/players"
+
+
+# — new CPL-specific constants —
+CPL_DEFAULT_SEASON_ID = "cpl::Football_Season::fd43e1d61dfe4396a7356bc432de0007"
+CPL_STATS_BASE_URL = "https://api-sdp.canpl.ca/v1/cpl/football"
+
+# stats endpoints (templated by season_id)
+CPL_TEAM_STATS_ENDPOINT = f"{CPL_STATS_BASE_URL}/seasons/{{season_id}}/stats/teams"
+CPL_PLAYER_STATS_ENDPOINT = f"{CPL_STATS_BASE_URL}/seasons/{{season_id}}/stats/players"
 
 # Query parameters for the match schedule endpoint
 MATCH_PARAMS = {
@@ -56,3 +63,15 @@ def build_url(base: str, params: dict) -> str:
     Helper to build a URL with query parameters.
     """
     return f"{base}?{urllib.parse.urlencode(params)}"
+
+
+LEADERBOARD_CATEGORIES: dict[str, str] = {
+    "GOALS": "goals",
+    "ASSISTS": "assists",
+    "SAVES": "saves",
+    "PASSES": "total-pass",
+    "INTERCEPTIONS": "interception",
+    "TACKLES": "tackle",
+    "RED_CARDS": "red-cards",
+    "YELLOW_CARDS": "yellow-cards",
+}

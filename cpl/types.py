@@ -189,7 +189,7 @@ class Period(TypedDict):
     end: str
     lengthMin: int
     lengthSec: int
-    announcedInjuryTime: int
+    announcedInjuryTime: NotRequired[int | None]
 
 
 class Scores(TypedDict):
@@ -310,20 +310,84 @@ class Player(TypedDict):
     bio: NotRequired[str]
 
 
-class TeamStats(TypedDict):
-    """Type hint for Team stats"""
+class StatEntry(TypedDict):
+    statsId: str
+    statsLabel: str
+    statsLabelAbbreviation: str|None
+    statsUnit: str | None
+    statsUnitAbbreviation: str | None
+    statsValue: float
 
-    ip: str
-    feeds: list[Feed]
-    contestant: list[TeamContestant]
+
+class TeamStatsEntry(TypedDict):
+    teamId: str
+    acronymName: str | None
+    acronymNameLocalized: str | None
+    countryCode: str
+    isTeamFake: bool
+    mediaName: str
+    mediaShortName: str
+    officialName: str
+    providerId: str
+    rankLabel: str | None
+    shortName: str
+    stadium: str | None
+    teamType: str
+    stats: list[StatEntry]
 
 
-class PlayerStats(TypedDict):
-    """Type hint for Player stats"""
+class EditorialInfo(TypedDict):
+    playerRoleWithinTeam: str
 
-    ip: str
-    feeds: list[Feed]
-    player: list[Player]
+
+class PlayerStatsEntry(TypedDict):
+    playerId: str
+    bibNumber: str
+    editorial: EditorialInfo
+    mediaFirstName: str
+    mediaLastName: str
+    nationality: str
+    nationalityIsoCode: str
+    providerId: str
+    rankLabel: str | None
+    role: int
+    roleLabel: str
+    shirtName: str
+    shortName: str
+    stats: list[StatEntry]
+    team: TeamStatsEntry
+
+
+class CompetitionInfo(TypedDict):
+    seasonId: str
+    tournamentName: str | None
+    acronymName: str | None
+    competitionId: str
+    name: str
+    officialName: str
+    providerId: str
+    shortName: str | None
+
+
+class PaginationInfo(TypedDict):
+    totalPages: int
+    currentPage: int
+    isLastPage: bool
+
+
+class TeamStatsResponse(TypedDict):
+    teams: list[TeamStatsEntry]
+    apiCallRequestTime: NotRequired[str]
+    competition: NotRequired[CompetitionInfo]
+    pagination: NotRequired[PaginationInfo]
+
+
+class PlayerStatsResponse(TypedDict):
+    players: list[PlayerStatsEntry] | list
+    apiCallRequestTime: NotRequired[str]
+    competition: NotRequired[CompetitionInfo]
+    pagination: NotRequired[PaginationInfo]
+
 
 
 class CompetitionStat(TypedDict, total=False):
@@ -347,14 +411,14 @@ class CompetitionStat(TypedDict, total=False):
     isFriendly: str
 
 
-class Membership(TypedDict):
-    contestantId: str
+class Membership(TypedDict, total=False):
+    contestantId: Required[str]
     contestantType: str
     contestantName: str
     contestantShortName: str
     active: str
     startDate: str
-    endDate: NotRequired[str | None]
+    endDate: str | None
     role: str
     type: str
     transferType: str
@@ -452,30 +516,10 @@ class TeamRoster(TypedDict):
     lastUpdated: str
 
 
-class LeaderboardEntry(TypedDict):
-    player_id: str
-    full_name: str
-    position: str
-    shirt_number: str
-    short_first_name: str
-    short_last_name: str
-    match_name: str
-    team_id: str
-    team_name: str
+class PlayerLeaderboardEntry(TypedDict):
+    firstName: str
+    lastName: str
+    nationality: str
+    nationalityIsoCode: str
     value: int
     ranking: int
-    photo_url: NotRequired[str]
-    bio: NotRequired[str]
-
-
-class PlayerLeaderboards(TypedDict):
-    """Type hint for player leaderboard"""
-
-    GOALS: list[LeaderboardEntry]
-    ASSISTS: list[LeaderboardEntry]
-    SAVES: list[LeaderboardEntry]
-    PASSES: list[LeaderboardEntry]
-    INTERCEPTIONS: list[LeaderboardEntry]
-    TACKLES: list[LeaderboardEntry]
-    RED_CARDS: list[LeaderboardEntry]
-    YELLOW_CARDS: list[LeaderboardEntry]
