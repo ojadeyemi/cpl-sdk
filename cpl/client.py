@@ -280,6 +280,7 @@ class CPLClient:
 
             raise
 
+    # TODO: add team name to leaderbaord
     def get_leaderboards(self) -> dict[str, list[PlayerLeaderboardEntry]]:
         """Retrieve player leaderboards for different statistical categories.
 

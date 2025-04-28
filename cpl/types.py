@@ -313,24 +313,24 @@ class Player(TypedDict):
 class StatEntry(TypedDict):
     statsId: str
     statsLabel: str
-    statsLabelAbbreviation: str | None
-    statsUnit: str | None
-    statsUnitAbbreviation: str | None
+    statsLabelAbbreviation: NotRequired[str | None]
+    statsUnit: NotRequired[str | None]
+    statsUnitAbbreviation: NotRequired[str | None]
     statsValue: float
 
 
-class TeamStatsEntry(TypedDict):
-    teamId: str
-    acronymName: str | None
+class TeamStatsEntry(TypedDict, total=False):
+    teamId: Required[str]
+    acronymName: Required[str]
     acronymNameLocalized: str | None
     countryCode: str
-    isTeamFake: bool
+    isTeamFake: bool | None
     mediaName: str
     mediaShortName: str
-    officialName: str
+    officialName: Required[str]
     providerId: str
     rankLabel: str | None
-    shortName: str
+    shortName: Required[str]
     stadium: str | None
     teamType: str
     stats: list[StatEntry]
@@ -340,19 +340,19 @@ class EditorialInfo(TypedDict):
     playerRoleWithinTeam: str
 
 
-class PlayerStatsEntry(TypedDict):
-    playerId: str
+class PlayerStatsEntry(TypedDict, total=False):
+    playerId: Required[str]
     bibNumber: str
     editorial: EditorialInfo
-    mediaFirstName: str
-    mediaLastName: str
+    mediaFirstName: Required[str]
+    mediaLastName: Required[str]
     nationality: str
     nationalityIsoCode: str
     providerId: str
     rankLabel: str | None
     role: int
-    roleLabel: str
-    shirtName: str
+    roleLabel: Required[str]
+    shirtName: str | None
     shortName: str
     stats: list[StatEntry]
     team: TeamStatsEntry
