@@ -523,3 +523,6 @@ class PlayerLeaderboardEntry(TypedDict):
     position: str
     value: int
     ranking: int
+    teamAcronym: str
+    teamOfficialName: str
+    teamShortName: str

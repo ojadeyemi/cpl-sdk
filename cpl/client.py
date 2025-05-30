@@ -280,7 +280,6 @@ class CPLClient:
 
             raise
 
-    # TODO: add team name to leaderbaord
     def get_leaderboards(self) -> dict[str, list[PlayerLeaderboardEntry]]:
         """Retrieve player leaderboards for different statistical categories.
 
@@ -297,6 +296,9 @@ class CPLClient:
             # Create lookup dictionary for player's stats by stat ID
             stats_dict = {stat["statsId"]: stat for stat in player.get("stats", [])}
 
+            # Get team info
+            team = player.get("team", {})
+
             # Add player to each leaderboard category if they have the relevant stat
             for category, stat_id in LEADERBOARD_CATEGORIES.items():
                 if stat_id in stats_dict:
@@ -311,6 +313,9 @@ class CPLClient:
                         "position": player.get("roleLabel", ""),
                         "value": int(stat.get("statsValue", 0)),
                         "ranking": 0,  # Will be set after sorting
+                        "teamAcronym": team.get("acronymName", ""),
+                        "teamOfficialName": team.get("officialName", ""),
+                        "teamShortName": team.get("shortName", ""),
                     }
 
                     leaderboards[category].append(entry)
