@@ -27,7 +27,7 @@ from .constants import (
 from .exceptions import APITimeoutError, RequestError
 from .logger import logger
 from .types import (
-    Person,
+    Person,  # noqa: F401
     PlayerCareerStats,
     PlayerLeaderboardEntry,
     PlayerStatsEntry,
@@ -54,7 +54,6 @@ class CPLClient:
         self.headers = {**DEFAULT_HEADERS, "User-Agent": get_random_user_agent()}
         self.logger = logger
         self._player_cache: dict[str, dict] = {}
-        self._initialize_player_cache()
 
     def _get(self, url: str) -> dict:
         """Perform a GET request and handle errors.
@@ -108,21 +107,21 @@ class CPLClient:
         except Exception as err:
             self.logger.error(f"Failed to initialize player cache: {err}")
 
-    def _enrich_player_data(self, player_data: dict, player_id: str) -> dict:
-        """Add image and bio to player data.
+    # def _enrich_player_data(self, player_data: dict, player_id: str) -> dict:
+    #     """Add image and bio to player data.
 
-        Args:
-            player_data: The player data dictionary to enrich
-            player_id: The player's unique ID
+    #     Args:
+    #         player_data: The player data dictionary to enrich
+    #         player_id: The player's unique ID
 
-        Returns:
-            Enriched player data dictionary
-        """
-        if player_id in self._player_cache:
-            player_data["photo_url"] = self._player_cache[player_id].get("photo_url")
-            player_data["bio"] = self._player_cache[player_id].get("bio")
+    #     Returns:
+    #         Enriched player data dictionary
+    #     """
+    #     if player_id in self._player_cache:
+    #         player_data["photo_url"] = self._player_cache[player_id].get("photo_url")
+    #         player_data["bio"] = self._player_cache[player_id].get("bio")
 
-        return player_data
+    #     return player_data
 
     def _get_players(self) -> list[PlayerStatsEntry]:
         """Get all player stats entries.
@@ -195,15 +194,15 @@ class CPLClient:
             # Access and enrich player data in the squad if available
             squad_list = data.get("squad", [])
             if squad_list and len(squad_list) > 0:
-                first_squad = squad_list[0]
+                first_squad = squad_list[0]  # noqa: F841
 
                 # Enrich each person's data directly in-place
-                if "person" in first_squad:
-                    for i, person in enumerate(first_squad["person"]):
-                        player_id = person.get("id")
-                        if player_id:
-                            enriched_person = cast(Person, self._enrich_player_data(dict(person), player_id))
-                            first_squad["person"][i] = enriched_person
+                # if "person" in first_squad:
+                #     for i, person in enumerate(first_squad["person"]):
+                #         player_id = person.get("id")
+                #         if player_id:
+                #             enriched_person = cast(Person, self._enrich_player_data(dict(person), player_id))
+                #             first_squad["person"][i] = enriched_person
 
             return data
 
@@ -263,12 +262,12 @@ class CPLClient:
             career_data = cast(PlayerCareerStats, data)
 
             # Enrich each person's data in the career stats
-            if "person" in career_data:
-                for i, person in enumerate(career_data["person"]):
-                    person_id = person.get("id")
-                    if person_id:
-                        enriched_person = cast(Person, self._enrich_player_data(dict(person), person_id))
-                        career_data["person"][i] = enriched_person
+            # if "person" in career_data:
+            #     for i, person in enumerate(career_data["person"]):
+            #         person_id = person.get("id")
+            #         if person_id:
+            #             enriched_person = cast(Person, self._enrich_player_data(dict(person), person_id))
+            #             career_data["person"][i] = enriched_person
 
             return career_data
 
