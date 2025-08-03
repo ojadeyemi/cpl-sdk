@@ -305,9 +305,6 @@ class Player(TypedDict):
     matchName: str
     team: str
     stat: NotRequired[list[Stat]]
-    # Images
-    photo_url: NotRequired[str]
-    bio: NotRequired[str]
 
 
 class StatEntry(TypedDict):
@@ -425,7 +422,6 @@ class Membership(TypedDict, total=False):
 
 
 class Person(TypedDict, total=False):
-    # Common fields
     id: str
     firstName: str
     lastName: str
@@ -438,8 +434,6 @@ class Person(TypedDict, total=False):
     nationalityId: str
     dateOfBirth: str
     status: str
-
-    # Optional fields in both
     secondNationality: str | None
     secondNationalityId: str | None
     placeOfBirth: str | None
@@ -447,25 +441,17 @@ class Person(TypedDict, total=False):
     countryOfBirthId: str | None
     height: int | str | None
     weight: int | str | None
-
-    # Fields in PlayerCareerStats
     lastUpdated: str
     ocSecondNationalityId: str | None
     opSecondNationalityId: str | None
     membership: list[Membership] | None
     position: str
-
-    # Fields in TeamRoster
     foot: str | None
     shirtNumber: int | None
     startDate: str
     endDate: str | None
     active: str
     knownName: str | None
-
-    # Images
-    photo_url: str
-    bio: str
     name: str
 
 

@@ -17,7 +17,6 @@ from .constants import (
     MATCH_BASE_URL,
     MATCH_PARAMS,
     PLAYER_CAREER_BASE_URL,
-    PLAYERS_ENDPOINT,
     ROSTER_BASE_URL,
     STANDINGS_BASE_URL,
     TEAM_INFO_BASE_URL,
@@ -27,7 +26,6 @@ from .constants import (
 from .exceptions import APITimeoutError, RequestError
 from .logger import logger
 from .types import (
-    Person,  # noqa: F401
     PlayerCareerStats,
     PlayerLeaderboardEntry,
     PlayerStatsEntry,
@@ -53,7 +51,6 @@ class CPLClient:
         self.client = httpx.Client(timeout=self.timeout)
         self.headers = {**DEFAULT_HEADERS, "User-Agent": get_random_user_agent()}
         self.logger = logger
-        self._player_cache: dict[str, dict] = {}
 
     def _get(self, url: str) -> dict:
         """Perform a GET request and handle errors.
@@ -81,47 +78,6 @@ class CPLClient:
         except httpx.HTTPError as he:
             self.logger.error(f"HTTP error fetching {url}: {str(he)}")
             raise RequestError(f"Error fetching data: {str(he)}") from he
-
-    def _initialize_player_cache(self) -> None:
-        """Load all player data into cache during initialization."""
-        try:
-            url = PLAYERS_ENDPOINT
-            data: dict[str, list[dict]] = self._get(url)
-
-            if not data or "players" not in data:
-                self.logger.warning("Failed to initialize player cache: No players data found")
-                return
-
-            # Build player cache with ID as key
-            for player in data["players"]:
-                player_id = player.get("id")
-                if player_id:
-                    self._player_cache[player_id] = {
-                        "photo_url": player.get("thumbnail") or player.get("default") or "",
-                        "bio": player.get("bio") or "",
-                        "name": player.get("name") or "",
-                    }
-
-            self.logger.info(f"Player cache initialized with {len(self._player_cache)} players")
-
-        except Exception as err:
-            self.logger.error(f"Failed to initialize player cache: {err}")
-
-    # def _enrich_player_data(self, player_data: dict, player_id: str) -> dict:
-    #     """Add image and bio to player data.
-
-    #     Args:
-    #         player_data: The player data dictionary to enrich
-    #         player_id: The player's unique ID
-
-    #     Returns:
-    #         Enriched player data dictionary
-    #     """
-    #     if player_id in self._player_cache:
-    #         player_data["photo_url"] = self._player_cache[player_id].get("photo_url")
-    #         player_data["bio"] = self._player_cache[player_id].get("bio")
-
-    #     return player_data
 
     def _get_players(self) -> list[PlayerStatsEntry]:
         """Get all player stats entries.
@@ -171,13 +127,13 @@ class CPLClient:
         return cast(TeamInfo, data)
 
     def get_roster(self, team_id: str) -> TeamRoster:
-        """Retrieve roster for a specific team with enriched player data.
+        """Retrieve roster for a specific team.
 
         Args:
             team_id: The team's unique ID
 
         Returns:
-            Team roster data with enriched player information
+            Team roster data
         """
         params = {
             "tmcl": DEFAULT_SEASON_ID,
@@ -189,22 +145,7 @@ class CPLClient:
         url = build_url(ROSTER_BASE_URL, params)
 
         try:
-            data = cast(TeamRoster, self._get(url))
-
-            # Access and enrich player data in the squad if available
-            squad_list = data.get("squad", [])
-            if squad_list and len(squad_list) > 0:
-                first_squad = squad_list[0]  # noqa: F841
-
-                # Enrich each person's data directly in-place
-                # if "person" in first_squad:
-                #     for i, person in enumerate(first_squad["person"]):
-                #         player_id = person.get("id")
-                #         if player_id:
-                #             enriched_person = cast(Person, self._enrich_player_data(dict(person), player_id))
-                #             first_squad["person"][i] = enriched_person
-
-            return data
+            return cast(TeamRoster, self._get(url))
 
         except RequestError as err:
             if "404" in str(err):
@@ -239,7 +180,7 @@ class CPLClient:
             Player stats response containing only the players data
         """
         url = CPL_PLAYER_STATS_ENDPOINT.format(season_id=season_id)
-        params = {"pageNumElement": 500}  # Request more players to avoid pagination
+        params = {"pageNumElement": 500}
         full_url = build_url(url, params)
         resp = self._get(full_url)
 
@@ -252,24 +193,13 @@ class CPLClient:
             player_id: The player's unique ID
 
         Returns:
-            Player career stats with enriched player information
+            Player career stats
         """
         params = {"prsn": player_id, "_fmt": DEFAULT_FMT, "_rt": DEFAULT_RT}
         url = build_url(PLAYER_CAREER_BASE_URL, params)
 
         try:
-            data = self._get(url)
-            career_data = cast(PlayerCareerStats, data)
-
-            # Enrich each person's data in the career stats
-            # if "person" in career_data:
-            #     for i, person in enumerate(career_data["person"]):
-            #         person_id = person.get("id")
-            #         if person_id:
-            #             enriched_person = cast(Person, self._enrich_player_data(dict(person), person_id))
-            #             career_data["person"][i] = enriched_person
-
-            return career_data
+            return cast(PlayerCareerStats, self._get(url))
 
         except RequestError as err:
             if "404" in str(err):
@@ -287,23 +217,18 @@ class CPLClient:
         """
         players = self._get_players()
 
-        # Initialize leaderboards with empty lists for each category
-        leaderboards: dict[str, list[PlayerLeaderboardEntry]] = {category: [] for category in LEADERBOARD_CATEGORIES}
+        leaderboards: dict[str, list[PlayerLeaderboardEntry]] = {
+            category: [] for category in LEADERBOARD_CATEGORIES
+        }
 
-        # Process each player's stats and add to relevant leaderboards
         for player in players:
-            # Create lookup dictionary for player's stats by stat ID
             stats_dict = {stat["statsId"]: stat for stat in player.get("stats", [])}
-
-            # Get team info
             team = player.get("team", {})
 
-            # Add player to each leaderboard category if they have the relevant stat
             for category, stat_id in LEADERBOARD_CATEGORIES.items():
                 if stat_id in stats_dict:
                     stat = stats_dict[stat_id]
 
-                    # Create leaderboard entry for this player
                     entry: PlayerLeaderboardEntry = {
                         "firstName": player.get("mediaFirstName", ""),
                         "lastName": player.get("mediaLastName", ""),
@@ -311,7 +236,7 @@ class CPLClient:
                         "nationalityIsoCode": player.get("nationalityIsoCode", ""),
                         "position": player.get("roleLabel", ""),
                         "value": int(stat.get("statsValue", 0)),
-                        "ranking": 0,  # Will be set after sorting
+                        "ranking": 0,
                         "teamAcronym": team.get("acronymName", ""),
                         "teamOfficialName": team.get("officialName", ""),
                         "teamShortName": team.get("shortName", ""),
@@ -319,12 +244,10 @@ class CPLClient:
 
                     leaderboards[category].append(entry)
 
-        # Sort each leaderboard by value (descending) and assign rankings
         for category, entries in leaderboards.items():
             entries.sort(key=lambda x: x["value"], reverse=True)
             leaderboards[category] = entries[:LEADERBOARD_LIMIT]
 
-            # Assign rankings (1-based)
             for i, entry in enumerate(leaderboards[category], 1):
                 entry["ranking"] = i
 
