@@ -1,3 +1,6 @@
+"""Exceptions for the CPL SDK."""
+
+
 class CPLSDKError(Exception):
     """Base exception for CPL SDK errors."""
 

@@ -66,17 +66,17 @@ class CPLClient:
             RequestError: When HTTP errors occur
         """
         try:
-            self.logger.debug(f"Requesting URL: {url} with headers: {self.headers}")
+            self.logger.debug("Requesting URL: %s with headers: %s", url, self.headers)
             response = self.client.get(url, headers=self.headers)
             response.raise_for_status()
             return response.json()
 
         except httpx.TimeoutException as te:
-            self.logger.error(f"Timeout error fetching {url}: {str(te)}")
+            self.logger.error("Timeout error fetching %s: %s", url, te)
             raise APITimeoutError(f"Timeout error: {str(te)}") from te
 
         except httpx.HTTPError as he:
-            self.logger.error(f"HTTP error fetching {url}: {str(he)}")
+            self.logger.error("HTTP error fetching %s: %s", url, he)
             raise RequestError(f"Error fetching data: {str(he)}") from he
 
     def _get_players(self) -> list[PlayerStatsEntry]:
@@ -149,7 +149,7 @@ class CPLClient:
 
         except RequestError as err:
             if "404" in str(err):
-                self.logger.warning(f"Roster not found (404) for team_id: {team_id}")
+                self.logger.warning("Roster not found (404) for team_id: %s", team_id)
                 return {"squad": [], "lastUpdated": ""}
             raise
 
@@ -203,7 +203,7 @@ class CPLClient:
 
         except RequestError as err:
             if "404" in str(err):
-                self.logger.warning(f"Player career not found (404) for player_id: {player_id}")
+                self.logger.warning("Player career not found (404) for player_id: %s", player_id)
 
                 return {"person": [], "lastUpdated": ""}
 
@@ -217,9 +217,7 @@ class CPLClient:
         """
         players = self._get_players()
 
-        leaderboards: dict[str, list[PlayerLeaderboardEntry]] = {
-            category: [] for category in LEADERBOARD_CATEGORIES
-        }
+        leaderboards: dict[str, list[PlayerLeaderboardEntry]] = {category: [] for category in LEADERBOARD_CATEGORIES}
 
         for player in players:
             stats_dict = {stat["statsId"]: stat for stat in player.get("stats", [])}

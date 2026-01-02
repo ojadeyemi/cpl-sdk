@@ -17,10 +17,6 @@ ROSTER_BASE_URL = f"{API_BASE}/squads/{COMPETITION_ID}"
 PLAYER_CAREER_BASE_URL = f"{API_BASE}/playercareer/{COMPETITION_ID}"
 
 
-CPL_BASE_API_URL = "https://login.canpl.ca/api"
-PLAYERS_ENDPOINT = f"{CPL_BASE_API_URL}/players"
-
-
 # — new CPL-specific constants —
 CPL_DEFAULT_SEASON_ID = "cpl::Football_Season::fd43e1d61dfe4396a7356bc432de0007"
 CPL_STATS_BASE_URL = "https://api-sdp.canpl.ca/v1/cpl/football"

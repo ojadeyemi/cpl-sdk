@@ -126,6 +126,8 @@ class OverUnderRanking(BaseContestant, total=False):
 
 
 class Division(TypedDict):
+    """Type hint for Division"""
+
     type: Literal[
         "total",
         "home",
@@ -163,6 +165,8 @@ class Standings(TypedDict):
 
 
 class MatchInfo(TypedDict):
+    """Type hint for MatchInfo"""
+
     id: str
     coverageLevel: NotRequired[str]
     date: str
@@ -373,6 +377,8 @@ class PaginationInfo(TypedDict):
 
 
 class TeamStatsResponse(TypedDict):
+    """Type hint for TeamStatsResponse"""
+
     teams: list[TeamStatsEntry]
     apiCallRequestTime: NotRequired[str]
     competition: NotRequired[CompetitionInfo]
@@ -387,6 +393,8 @@ class PlayerStatsResponse(TypedDict):
 
 
 class CompetitionStat(TypedDict, total=False):
+    """Type hint for CompetitionStat"""
+
     competitionId: str
     competitionName: str
     tournamentCalendarId: str
@@ -422,6 +430,8 @@ class Membership(TypedDict, total=False):
 
 
 class Person(TypedDict, total=False):
+    """Type hint for Person"""
+
     id: str
     firstName: str
     lastName: str
@@ -456,6 +466,8 @@ class Person(TypedDict, total=False):
 
 
 class Kit(TypedDict):
+    """Type hint for Kit"""
+
     type: str
     shirtColour1: str
     shirtColour2: NotRequired[str | None]
@@ -469,6 +481,8 @@ class TeamKits(TypedDict):
 
 
 class Squad(TypedDict):
+    """Type hint for Squad"""
+
     contestantId: str
     contestantName: str
     contestantShortName: str
